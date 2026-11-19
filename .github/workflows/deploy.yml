@@ -1,37 +1,35 @@
-# .github/workflows/deploy.yml
-name: Manual Deploy
+name: Manual Deploy to GitHub Pages
 
 on:
   workflow_dispatch:
     inputs:
       ref:
         description: "Kaun si branch deploy karni hai"
-        default: main
-      environment:
-        description: "Where to deploy"
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
-        default: staging
-      ref:
-        description: "Branch, tag, or commit to deploy"
         required: true
         default: main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}   # enables secrets + approvals per environment
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Code checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Set up Node
+      - name: Node setup
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -42,16 +40,11 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy to server over SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Upload build
+        uses: actions/upload-pages-artifact@v3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /var/www/myapp
-            git fetch --all
-            git checkout ${{ inputs.ref }}
-            npm ci --omit=dev
-            npm run build
-            pm2 restart myapp
+          path: dist        # Create React App ho to "build" likho
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
