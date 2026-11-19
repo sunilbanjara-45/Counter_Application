@@ -31,7 +31,7 @@ const App = () => {
             🔢
           </div>
           <h1 className="text-3xl font-bold text-gray-800">
-            Counter App By Sunil
+            Counter App 
           </h1>
           <p className="mt-2 text-sm text-gray-500">
             Your count is saved automatically
