@@ -3,5 +3,5 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(),],
-  base: process.env.GITHUB_ACTIONS ? '/Counter_Application/' : '/',
+  base: '/Counter_Application/',
 })
