@@ -3,6 +3,5 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(),],
-  // base: '/Counter_Application/', //for github pages
-  base: '/',  // for netlify
+  base: process.env.GITHUB_ACTIONS ? '/Counter_Application/' : '/',
 })
