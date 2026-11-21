@@ -1,50 +1,26 @@
-name: Manual Deploy to GitHub Pages
-
+name: Deploy to Production
 on:
   workflow_dispatch:
-    inputs:
-      ref:
-        description: "Kaun si branch deploy karni hai"
-        required: true
-        default: main
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Code checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
+      - uses: actions/checkout@v4
 
-      - name: Node setup
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install and build
-        run: |
-          npm ci
-          npm run build
-
-      - name: Upload build
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist        # Create React App ho to "build" likho
+      - run: npm ci
+      - run: npm run build
 
       - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+        run: |
+          if [ -d dist ]; then OUT=dist; else OUT=build; fi
+          REL=/var/www/counter/releases/${{ github.sha }}
+          mkdir -p $REL
+          cp -r $OUT/. $REL/
+          ln -sfn $REL /var/www/counter/current
+          cd /var/www/counter/releases && ls -1t | tail -n +6 | xargs -r rm -rf
